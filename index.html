@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Пронин Роман</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      background: #fff;
+      color: #0d0d0d;
+    }
+
+    /* ── Page grid ── */
+    .page {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: 44px 64px 28px;
+    }
+
+    .name {
+      font-size: clamp(26px, 4vw, 44px);
+      font-weight: 300;
+      letter-spacing: -0.02em;
+    }
+    .role {
+      margin-top: 10px;
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #999;
+    }
+
+    /* ── Timeline scroll ── */
+    .tl-scroll {
+      display: flex;
+      align-items: center;
+      overflow-x: auto;
+      overflow-y: visible;
+      scrollbar-width: none;
+      cursor: grab;
+      user-select: none;
+      min-height: 260px;
+      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .tl-scroll:active { cursor: grabbing; }
+    .tl-scroll::-webkit-scrollbar { display: none; }
+    .tl-scroll.raised { transform: translateY(-20px); }
+
+    .tl-track { position: relative; flex-shrink: 0; height: 260px; }
+
+    .tl-seg {
+      position: absolute; top: 50%;
+      height: 1px; background: #0d0d0d;
+      transform: translateY(-50%);
+    }
+    .tl-seg.gap { background: none; border-top: 1px dashed #ccc; }
+    .tl-seg.cap-l::before, .tl-seg.cap-r::after {
+      content: ''; position: absolute;
+      top: -4px; width: 1px; height: 9px; background: #0d0d0d;
+    }
+    .tl-seg.cap-l::before { left: 0; }
+    .tl-seg.cap-r::after  { right: 0; }
+
+    .yr { position: absolute; top: calc(50% + 8px); transform: translateX(-50%); }
+    .yr span { font-size: 8px; letter-spacing: 0.12em; color: #ccc; }
+
+    /* ── Event ── */
+    .ev {
+      position: absolute; top: 50%;
+      transform: translateX(-50%) translateY(calc(-100px - 3.5px));
+      display: flex; flex-direction: column; align-items: center;
+      width: 120px;
+    }
+    .ev-upper, .ev-lower {
+      width: 100%; height: 100px;
+      display: flex; flex-direction: column; align-items: center; flex-shrink: 0;
+    }
+    .ev-upper { justify-content: flex-end; }
+    .ev-lower { justify-content: flex-start; }
+    .ev-arm { width: 1px; height: 28px; background: #ddd; flex-shrink: 0; }
+    .ev-info { text-align: center; }
+    .ev-title { font-size: 11px; font-weight: 500; line-height: 1.45; white-space: pre-line; }
+    .ev-year  { font-size: 9px; color: #aaa; letter-spacing: 0.08em; margin-top: 3px; }
+    .ev-tag {
+      display: inline-block; font-size: 7.5px; letter-spacing: 0.12em;
+      text-transform: uppercase; border: 1px solid #e0e0e0; color: #c0c0c0;
+      border-radius: 2px; padding: 1px 5px; margin-top: 4px;
+    }
+    .ev-tag.milestone, .ev-tag.diploma, .ev-tag.exhibition { border-color: #0d0d0d; color: #0d0d0d; }
+
+    .ev-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #0d0d0d; flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+    .ev:hover .ev-dot { transform: scale(2.4); }
+    .ev.diploma .ev-dot { width: 9px; height: 9px; }
+    .ev.diploma:hover .ev-dot { transform: scale(2.2); }
+    .ev.has-media { cursor: pointer; }
+    .ev.has-media:hover .ev-title {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-color: #bbb;
+    }
+
+    footer {
+      display: flex; justify-content: space-between;
+      font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: #d0d0d0;
+    }
+
+    /* ── Panel (in-flow, grows from bottom) ── */
+    #panel-wrap {
+      flex-shrink: 0;
+      height: 0;
+      overflow: hidden;
+      border-top: 1px solid transparent;
+      transition: height 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+                  border-top-color 0.15s 0.1s;
+    }
+    #panel-wrap.open {
+      height: 435px;
+      border-top-color: #e8e8e8;
+    }
+
+    .panel { padding: 18px 64px; }
+
+    .panel-head {
+      display: flex; align-items: flex-start; justify-content: space-between;
+    }
+    .panel-title {
+      font-size: 16px; font-weight: 300;
+      letter-spacing: -0.01em; white-space: pre-line; line-height: 1.2;
+    }
+    .panel-meta {
+      font-size: 9px; letter-spacing: 0.18em;
+      text-transform: uppercase; color: #999; margin-top: 3px;
+    }
+    .panel-close {
+      background: none; border: none; font-size: 20px;
+      color: #bbb; cursor: pointer; line-height: 1;
+      padding: 0 0 0 20px; flex-shrink: 0; transition: color 0.15s;
+    }
+    .panel-close:hover { color: #0d0d0d; }
+
+    .panel-desc {
+      margin-top: 6px;
+      font-size: 11px; line-height: 1.5; color: #555;
+      columns: 2; column-gap: 32px;
+      max-height: calc(5 * 11px * 1.5);
+      overflow-y: auto; scrollbar-width: none;
+    }
+    .panel-desc::-webkit-scrollbar { display: none; }
+
+    /* ── Media strip ── */
+    .panel-strip {
+      display: flex; gap: 10px;
+      margin-top: 8px; height: 265px;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .panel-strip::-webkit-scrollbar { display: none; }
+
+    .panel-strip img {
+      height: 100%; width: auto;
+      object-fit: cover; flex-shrink: 0;
+      display: block; background: #f0f0f0;
+      cursor: zoom-in;
+      transition: opacity 0.15s;
+    }
+    .panel-strip img:hover { opacity: 0.88; }
+
+    .panel-strip video {
+      height: 100%; width: auto;
+      max-width: 400px;
+      object-fit: contain; flex-shrink: 0;
+      display: block; background: #111;
+    }
+
+    /* ── Lightbox ── */
+    #lightbox {
+      position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.92);
+      z-index: 300;
+      display: none; align-items: center; justify-content: center;
+      cursor: zoom-out;
+    }
+    #lightbox.open { display: flex; }
+
+    #lb-img {
+      max-width: 84vw; max-height: 86vh;
+      object-fit: contain; display: block;
+      cursor: default;
+    }
+    #lb-close {
+      position: absolute; top: 24px; right: 32px;
+      background: none; border: none;
+      font-size: 28px; color: rgba(255,255,255,0.5);
+      cursor: pointer; line-height: 1; transition: color 0.15s;
+    }
+    #lb-close:hover { color: #fff; }
+
+    .lb-nav {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background: none; border: none;
+      font-size: 52px; line-height: 1;
+      color: rgba(255,255,255,0.35);
+      cursor: pointer; padding: 0 28px;
+      transition: color 0.15s;
+    }
+    .lb-nav:hover { color: rgba(255,255,255,0.9); }
+    .lb-nav[hidden] { display: none; }
+    #lb-prev { left: 0; }
+    #lb-next { right: 0; }
+
+    #lb-counter {
+      position: absolute; bottom: 22px; left: 50%;
+      transform: translateX(-50%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+    }
+    #lb-counter[hidden] { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="page">
+  <header>
+    <div class="name">Пронин Роман</div>
+    <div class="role">Креативный продюсер</div>
+  </header>
+
+  <div class="tl-scroll" id="scroll">
+    <div class="tl-track" id="track"></div>
+  </div>
+
+  <footer>
+    <span id="range"></span>
+    <span>Portfolio</span>
+  </footer>
+</div>
+
+<div id="panel-wrap">
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="panel-title" id="panel-title"></div>
+        <div class="panel-meta"  id="panel-meta"></div>
+      </div>
+      <button class="panel-close" id="panel-close">×</button>
+    </div>
+    <div class="panel-desc" id="panel-desc"></div>
+    <div class="panel-strip" id="panel-strip"></div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox">
+  <button id="lb-close">×</button>
+  <button id="lb-prev" class="lb-nav">‹</button>
+  <img id="lb-img" src="" alt="">
+  <button id="lb-next" class="lb-nav">›</button>
+  <div id="lb-counter"></div>
+</div>
+
+<script>
+const PX_MO    = 130;
+const COMPRESS = 120;
+const PAD      = 80;
+
+const EVENTS = [
+  { year: 2023, month:  9, title: "Магистратура ArtTech",
+    type: "milestone",
+    desc: "В 2023 году поступил в магистратуру ArtTech «Технологическое искусство» — программу на стыке современного искусства и технологий. За два года обучения реализовал 8 авторских арт-проектов, участвовал в групповых выставках в галерее Краснохолмская и культурном центре ДК ЗИЛ." },
+
+  { year: 2025, month:  2, title: "Классика",
+    type: "project",
+    desc: "Руководил направлением света и медиа-арта в арт-группе «Классика» на протяжении четырёх проектов. Каждый раз с нуля строили полноценную концертную площадку в непредназначенных для этого пространствах: кинозал детского лагеря, спортивный зал, дважды — открытое поле на фестивалях. Проектировал световое решение, собирал и монтировал оборудование, управлял командой на площадке.",
+    photos: ["photos/klassika/1.jpg","photos/klassika/2.jpg","photos/klassika/3.jpg",
+             "photos/klassika/4.jpg","photos/klassika/5.jpg"],
+    videos: ["videos/klassika/1.mp4","videos/klassika/2.mp4","videos/klassika/3.mp4",
+             "videos/klassika/4.mp4","videos/klassika/5.mp4","videos/klassika/6.mp4"] },
+
+  { year: 2025, month:  5, title: "АрхМосква'25",
+    type: "project",
+    desc: "Участвовали в главной архитектурной выставке страны АрхМосква 2025. Разработали и подготовили весь графический контент для выставочного экрана. На одном из стендов развернули систему на основе нейронной сети, работающей в реальном времени и генерирующей визуальный контент в ответ на действия посетителей.",
+    videos: ["videos/arkhmos/1.mp4","videos/arkhmos/2.mp4"] },
+
+  { year: 2025, month:  6, title: "Защита диплома ArtTech'25",
+    type: "diploma",
+    desc: "Магистерская диссертация на тему «Мультисенсорное устройство и его воздействие на когнитивно-эмоциональное состояние и уровень релаксации человека». Самостоятельно разработал и собрал рабочий прототип устройства, воздействующего на человека светом и бинауральными ритмами. Провёл исследование с участниками, зафиксировал и проанализировал результаты. Исследование показало дифференцированный эффект: у части участников наблюдалась релаксация, у другой — повышение возбуждения, что указывает на необходимость персонализации в сенсорном дизайне.",
+    photos: ["photos/arttech/1.jpg"],
+    videos: ["videos/arttech/1.mp4","videos/arttech/2.mp4"] },
+
+  { year: 2025, month:  6, sub: 0.5, title: "Outline'25 — Т-Банк",
+    type: "project",
+    desc: "Руководил разработкой интерактивной игровой инсталляции для стенда Т-Банка на фестивале Outline. Система реализована в среде TouchDesigner: посетители управляли игрой с помощью джойстика, результат выводился на большой экран. Инсталляция стала точкой притяжения на стенде и обеспечила высокую вовлечённость аудитории.",
+    videos: ["videos/outline/1.mp4"] },
+
+  { year: 2025, month:  7, title: "DEX",
+    type: "project",
+    desc: "Руководил проектом световой инсталляции на открытии клуба DEX. Разработал концепцию и обеспечил полный производственный цикл: атмосферная подсветка деревьев и двора, авторская художественная подсветка диджейского пульта и вентиляторов у пруда, лазерная инсталляция на воде. Управлял командой, координировал монтаж и ввод в эксплуатацию в день открытия.",
+    photos: ["photos/dex/1.jpg","photos/dex/2.jpg","photos/dex/3.jpg","photos/dex/4.jpg",
+             "photos/dex/5.jpg","photos/dex/6.jpg","photos/dex/7.jpg","photos/dex/8.jpg",
+             "photos/dex/9.jpg","photos/dex/10.jpg","photos/dex/11.jpg","photos/dex/12.jpg",
+             "photos/dex/13.jpg","photos/dex/14.jpg","photos/dex/15.jpg","photos/dex/16.jpg",
+             "photos/dex/17.jpg"],
+    videos: ["videos/dex/1.mp4","videos/dex/2.mp4","videos/dex/3.mp4",
+             "videos/dex/4.mp4","videos/dex/5.mp4","videos/dex/6.mp4","videos/dex/7.mp4"] },
+
+  { year: 2025, month:  7, sub: 0.5, title: "SIGNAL",
+    type: "project",
+    desc: "На фестивале SIGNAL реализовали новую световую программу для открытого пространства клуба DEX. Дополнили существующую концепцию подсветкой надувных арт-объектов, художественным освещением пруда и интерактивной лазерной инсталляцией, реагирующей на музыку и движение в пространстве.",
+    photos: ["photos/signal/1.jpg","photos/signal/2.jpg","photos/signal/3.jpg","photos/signal/4.jpg"],
+    videos: ["videos/signal/1.mp4","videos/signal/2.mp4","videos/signal/3.mp4",
+             "videos/signal/4.mp4","videos/signal/5.mp4"] },
+
+  { year: 2025, month:  8, title: "DEX — РОКЕТ",
+    type: "project",
+    desc: "Руководил брендированной световой инсталляцией в клубе DEX для Rocket Bank. Разработал и предложил ключевую идею проекта — плавающие буквы на поверхности пруда с проекционным маппингом. Смонтировали проектор с видеомаппингом на арт-объекты и экран-сетку с динамическим брендированным контентом. Концепция обеспечила уникальный визуальный образ интеграции.",
+    photos: ["photos/dexrocket/1.jpg","photos/dexrocket/2.jpg","photos/dexrocket/3.jpg"],
+    videos: ["videos/dexrocket/1.mp4","videos/dexrocket/2.mp4","videos/dexrocket/3.mp4",
+             "videos/dexrocket/4.mp4","videos/dexrocket/5.mp4"] },
+
+  { year: 2025, month:  8, sub: 0.5, title: "Московская\nнеделя моды",
+    type: "project",
+    desc: "Руководил производством около 800 м декоративной LED-подсветки металлических конструкций на Московской неделе моды. Собирал команду, выстраивал логистику и управлял процессом. В ходе проекта столкнулся с критической ситуацией: подрядчик по металлоконструкциям сорвал сроки. Оперативно нашёл альтернативное производство и сохранил дедлайн без потери качества.",
+    photos: ["photos/moda/1.jpg","photos/moda/2.jpg",
+             "photos/moda/3.jpg","photos/moda/4.jpg"] },
+
+  { year: 2025, month:  9, title: "Свет",
+    type: "art",
+    desc: "Подборка проектов в роли художника по свету и креативного продюсера. Работал с разными форматами и масштабами — от камерных вечеринок до крупных культурных событий. Каждый проект требовал авторского светового решения с учётом архитектуры пространства, настроения события и технических ограничений.",
+    photos: ["photos/svet/1.jpg","photos/svet/2.jpg"],
+    videos: ["videos/svet/1.mp4","videos/svet/2.mp4","videos/svet/3.mp4"] },
+
+  { year: 2025, month: 10, title: "МАРС —\nСон в музее",
+    type: "exhibition",
+    desc: "Руководил полным техническим обеспечением выставки «Сон в музее» в центре Марс. В зоне ответственности — три направления: свет (галерейное освещение и подсветка картин), звук (13 независимых аудиозон на отдельных каналах) и мультимедиа (11 проекторов, из них 4 сшитых на пол и 2 на стену). Центральный элемент экспозиции — интерактивная нейросетевая инсталляция, визуализирующая сны посетителей в реальном времени.",
+    photos: ["photos/mars/1.jpg","photos/mars/2.jpg",
+             "photos/mars/3.jpg","photos/mars/4.jpg"],
+    videos: ["videos/mars/1.mp4","videos/mars/2.mp4",
+             "videos/mars/3.mp4","videos/mars/4.mp4"] },
+
+  { year: 2025, month: 11, title: "ЦИПР",
+    type: "exhibition",
+    desc: "Разработали интерактивную инсталляцию «Под защитой» для стенда компании Solar на конференции ЦИПР. Посетитель подходил к камере и получал два снимка: исходное фото и версию с наложенной 3D-сеткой — визуальной метафорой защиты. Инсталляция переводила сложный продуктовый концепт в понятный и запоминающийся пользовательский опыт.",
+    photos: ["photos/tsipr/1.jpg"],
+    videos: ["videos/tsipr/1.mp4","videos/tsipr/2.mp4","videos/tsipr/3.mp4"] },
+
+  { year: 2025, month: 12, title: "РОССИЯ.\nХанты Мансийск",
+    type: "exhibition",
+    desc: "Сформировал команду и руководил продакшеном пяти интерактивных инсталляций для выставки «Россия» в Ханты-Мансийске. Параллельно обеспечил разработку интерактивного программного обеспечения для 22 тачскринов: пользователи проходили тематическую викторину с игровым финалом. Все объекты сданы в срок и приняты заказчиком.",
+    photos: ["photos/hanty/2.jpg","photos/hanty/3.jpg",
+             "photos/hanty/4.jpg","photos/hanty/5.jpg","photos/hanty/6.jpg",
+             "photos/hanty/7.jpg","photos/hanty/8.jpg","photos/hanty/9.jpg",
+             "photos/hanty/10.jpg"],
+    videos: ["videos/hanty/1.mp4","videos/hanty/2.mp4","videos/hanty/3.mp4",
+             "videos/hanty/4.mp4","videos/hanty/5.mp4"] },
+
+  { year: 2026, month:  1, title: "Деконструкция\nзвёздного неба. МАММ",
+    type: "art",
+    desc: "Участвовал в арт-проекте Виктора Полякова «Деконструкция звёздного неба», представленном в Мультимедиа Арт Музее Москвы. Провёл неделю в пустыне ОАЭ, снимая ночное небо с использованием специализированной оптики и съёмочных техник. Отснятый материал лёг в основу экспозиции, исследующей границы визуального восприятия звёздного пространства.",
+    photos: ["photos/dekonstruk/1.jpg","photos/dekonstruk/2.jpg","photos/dekonstruk/3.jpg",
+             "photos/dekonstruk/4.jpg","photos/dekonstruk/5.jpg","photos/dekonstruk/6.jpg",
+             "photos/dekonstruk/7.jpg","photos/dekonstruk/8.jpg","photos/dekonstruk/9.jpg"] },
+
+];
+
+/* ── Helpers ── */
+const amo   = ev  => ev.year * 12 + ev.month + (ev.sub || 0);
+const segPx = gap => Math.min(gap * PX_MO, COMPRESS);
+const isGap = gap => gap * PX_MO > COMPRESS;
+
+/* ── Positions ── */
+const pos = [0];
+for (let i = 1; i < EVENTS.length; i++)
+  pos.push(pos[i - 1] + segPx(amo(EVENTS[i]) - amo(EVENTS[i - 1])));
+
+const trackW = PAD * 2 + pos[pos.length - 1];
+const track  = document.getElementById('track');
+track.style.width = trackW + 'px';
+
+/* ── Line segments ── */
+for (let i = 1; i < EVENTS.length; i++) {
+  const gap = amo(EVENTS[i]) - amo(EVENTS[i - 1]);
+  let cls = 'tl-seg';
+  if (isGap(gap))              cls += ' gap';
+  if (i === 1)                 cls += ' cap-l';
+  if (i === EVENTS.length - 1) cls += ' cap-r';
+  const seg = document.createElement('div');
+  seg.className = cls;
+  seg.style.left  = (PAD + pos[i - 1]) + 'px';
+  seg.style.width = (pos[i] - pos[i - 1]) + 'px';
+  track.appendChild(seg);
+}
+
+/* ── Year labels ── */
+function xForMo(year, month) {
+  const m = year * 12 + month, amos = EVENTS.map(amo);
+  if (m <= amos[0]) return PAD + pos[0];
+  for (let i = 1; i < EVENTS.length; i++)
+    if (m >= amos[i - 1] && m <= amos[i]) {
+      const gap = amos[i] - amos[i - 1];
+      return PAD + pos[i - 1] + ((m - amos[i - 1]) / gap) * segPx(gap);
+    }
+  return PAD + pos[pos.length - 1];
+}
+
+for (let y = EVENTS[0].year + 1; y <= EVENTS[EVENTS.length - 1].year; y++) {
+  const x = xForMo(y, 1);
+  if (EVENTS.some((_, i) => Math.abs(PAD + pos[i] - x) < 50)) continue;
+  const el = document.createElement('div');
+  el.className = 'yr'; el.style.left = x + 'px';
+  el.innerHTML = `<span>${y}</span>`;
+  track.appendChild(el);
+}
+
+/* ── Events ── */
+const TAG = { project: 'Проект', milestone: 'Веха', diploma: 'Диплом', art: 'Арт', exhibition: 'Выставка' };
+
+EVENTS.forEach((ev, i) => {
+  const x        = PAD + pos[i];
+  const above    = i % 2 === 0;
+  const hasMedia   = (ev.photos && ev.photos.length) || (ev.videos && ev.videos.length);
+  const hasContent = hasMedia || !!ev.desc;
+
+  const info = `<div class="ev-info">
+    <div class="ev-title">${ev.title}</div>
+    <div class="ev-year">${ev.year}</div>
+    <span class="ev-tag ${ev.type}">${TAG[ev.type]}</span>
+  </div>`;
+
+  const node = document.createElement('div');
+  let cls = 'ev';
+  if (ev.type === 'diploma') cls += ' diploma';
+  if (hasContent)            cls += ' has-media';
+  node.className  = cls;
+  node.style.left = x + 'px';
+  node.innerHTML  = `
+    <div class="ev-upper">${above ? info + '<div class="ev-arm"></div>' : ''}</div>
+    <div class="ev-dot"></div>
+    <div class="ev-lower">${above ? '' : '<div class="ev-arm"></div>' + info}</div>
+  `;
+
+  if (hasContent) {
+    node.addEventListener('click', e => {
+      e.stopPropagation(); // don't bubble to the close-on-click listener
+      openPanel(ev);
+    });
+  }
+  track.appendChild(node);
+});
+
+/* ── Footer ── */
+document.getElementById('range').textContent =
+  `${EVENTS[0].year} — ${EVENTS[EVENTS.length - 1].year}`;
+
+/* ── Panel ── */
+const panelWrap = document.getElementById('panel-wrap');
+const tlScroll  = document.getElementById('scroll');
+let   panelOpen = false;
+
+function openPanel(ev) {
+  document.getElementById('panel-title').textContent = ev.title;
+  document.getElementById('panel-meta').textContent  = `${ev.year}  ·  ${TAG[ev.type]}`;
+  document.getElementById('panel-desc').textContent  = ev.desc || '';
+
+  const strip = document.getElementById('panel-strip');
+
+  strip.querySelectorAll('video').forEach(v => { v.pause(); v.src = ''; v.load(); });
+
+  strip.innerHTML = '';
+
+  (ev.photos || []).forEach(src => {
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = ev.title;
+    const idx = (ev.photos || []).indexOf(src);
+    img.addEventListener('click', e => { e.stopPropagation(); openLightbox(ev.photos, idx); });
+    strip.appendChild(img);
+  });
+
+  (ev.videos || []).forEach(src => {
+    const vid = document.createElement('video');
+    vid.controls    = true;
+    vid.muted       = true;
+    vid.preload     = 'metadata';
+    vid.playsInline = true;
+    vid.src = src;
+    vid.load();
+    vid.addEventListener('click', e => e.stopPropagation());
+    strip.appendChild(vid);
+  });
+
+  panelWrap.classList.add('open');
+  tlScroll.classList.add('raised');
+  panelOpen = true;
+}
+
+function closePanel() {
+  if (!panelOpen) return;
+  panelWrap.classList.remove('open');
+  tlScroll.classList.remove('raised');
+  panelOpen = false;
+  document.querySelectorAll('#panel-strip video').forEach(v => { v.pause(); v.src = ''; v.load(); });
+}
+
+document.getElementById('panel-close').addEventListener('click', e => {
+  e.stopPropagation();
+  closePanel();
+});
+
+// Close panel on click anywhere outside panel and outside event dots
+document.addEventListener('click', () => closePanel());
+
+// Stop clicks inside panel from bubbling to the document listener
+panelWrap.addEventListener('click', e => e.stopPropagation());
+
+/* ── Lightbox ── */
+const lightbox  = document.getElementById('lightbox');
+const lbImg     = document.getElementById('lb-img');
+const lbPrev    = document.getElementById('lb-prev');
+const lbNext    = document.getElementById('lb-next');
+const lbCounter = document.getElementById('lb-counter');
+let lbPhotos = [];
+let lbIndex  = 0;
+
+function updateLightbox() {
+  lbImg.src = lbPhotos[lbIndex];
+  const multi = lbPhotos.length > 1;
+  lbPrev.hidden    = !multi;
+  lbNext.hidden    = !multi;
+  lbCounter.hidden = !multi;
+  if (multi) lbCounter.textContent = `${lbIndex + 1} / ${lbPhotos.length}`;
+}
+
+function openLightbox(photos, index) {
+  lbPhotos = photos;
+  lbIndex  = index;
+  updateLightbox();
+  lightbox.classList.add('open');
+}
+
+function closeLightbox() {
+  lightbox.classList.remove('open');
+  // panel stays open — don't call closePanel()
+}
+
+// Click on dark backdrop → close lightbox only
+lightbox.addEventListener('click', e => {
+  e.stopPropagation(); // prevent document listener → panel stays open
+  closeLightbox();
+});
+
+// Clicks on image/buttons don't close the lightbox
+lbImg.addEventListener('click',     e => e.stopPropagation());
+lbPrev.addEventListener('click',    e => { e.stopPropagation(); lbIndex = (lbIndex - 1 + lbPhotos.length) % lbPhotos.length; updateLightbox(); });
+lbNext.addEventListener('click',    e => { e.stopPropagation(); lbIndex = (lbIndex + 1) % lbPhotos.length; updateLightbox(); });
+document.getElementById('lb-close').addEventListener('click', e => { e.stopPropagation(); closeLightbox(); });
+
+/* ── Keyboard ── */
+document.addEventListener('keydown', e => {
+  if (lightbox.classList.contains('open')) {
+    if (e.key === 'ArrowLeft')  { lbIndex = (lbIndex - 1 + lbPhotos.length) % lbPhotos.length; updateLightbox(); }
+    if (e.key === 'ArrowRight') { lbIndex = (lbIndex + 1) % lbPhotos.length; updateLightbox(); }
+    if (e.key === 'Escape')     closeLightbox();
+    return;
+  }
+  if (e.key === 'Escape') closePanel();
+});
+
+/* ── Drag-to-scroll (suppresses click after drag) ── */
+const scroll = document.getElementById('scroll');
+let drag = false, sx = 0, sl = 0, moved = false;
+
+scroll.addEventListener('mousedown', e => {
+  drag = true; moved = false; sx = e.pageX; sl = scroll.scrollLeft;
+});
+document.addEventListener('mouseup', () => { drag = false; });
+scroll.addEventListener('mousemove', e => {
+  if (!drag) return;
+  if (Math.abs(e.pageX - sx) > 4) moved = true;
+  if (moved) { e.preventDefault(); scroll.scrollLeft = sl - (e.pageX - sx); }
+});
+// Capture-phase: eat the click event after a drag so it doesn't open/close panels
+scroll.addEventListener('click', e => { if (moved) e.stopPropagation(); }, true);
+</script>
+
+</body>
+</html>
