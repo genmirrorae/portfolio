@@ -228,6 +228,26 @@
       color: rgba(255,255,255,0.35);
     }
     #lb-counter[hidden] { display: none; }
+
+    /* ── Mobile responsive ── */
+    @media (max-width: 768px) {
+      .page { padding: 28px 20px 16px; }
+      .panel { padding: 14px 20px; }
+      .panel-desc { columns: 1; }
+      #panel-wrap.open { height: 380px; }
+      .panel-strip { height: 200px; }
+      .tl-scroll.raised { transform: translateY(-12px); }
+    }
+
+    @media (max-width: 480px) {
+      .page { padding: 20px 16px 12px; }
+      .panel { padding: 12px 16px; }
+      #panel-wrap.open { height: 320px; }
+      .panel-strip { height: 160px; }
+      .panel-title { font-size: 14px; }
+      .tl-scroll { min-height: 220px; }
+      .tl-scroll.raised { transform: translateY(-8px); }
+    }
   </style>
 </head>
 <body>
@@ -453,7 +473,7 @@ EVENTS.forEach((ev, i) => {
 
   if (hasContent) {
     node.addEventListener('click', e => {
-      e.stopPropagation(); // don't bubble to the close-on-click listener
+      e.stopPropagation();
       openPanel(ev);
     });
   }
@@ -519,10 +539,7 @@ document.getElementById('panel-close').addEventListener('click', e => {
   closePanel();
 });
 
-// Close panel on click anywhere outside panel and outside event dots
 document.addEventListener('click', () => closePanel());
-
-// Stop clicks inside panel from bubbling to the document listener
 panelWrap.addEventListener('click', e => e.stopPropagation());
 
 /* ── Lightbox ── */
@@ -552,16 +569,13 @@ function openLightbox(photos, index) {
 
 function closeLightbox() {
   lightbox.classList.remove('open');
-  // panel stays open — don't call closePanel()
 }
 
-// Click on dark backdrop → close lightbox only
 lightbox.addEventListener('click', e => {
-  e.stopPropagation(); // prevent document listener → panel stays open
+  e.stopPropagation();
   closeLightbox();
 });
 
-// Clicks on image/buttons don't close the lightbox
 lbImg.addEventListener('click',     e => e.stopPropagation());
 lbPrev.addEventListener('click',    e => { e.stopPropagation(); lbIndex = (lbIndex - 1 + lbPhotos.length) % lbPhotos.length; updateLightbox(); });
 lbNext.addEventListener('click',    e => { e.stopPropagation(); lbIndex = (lbIndex + 1) % lbPhotos.length; updateLightbox(); });
@@ -578,7 +592,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closePanel();
 });
 
-/* ── Drag-to-scroll (suppresses click after drag) ── */
+/* ── Drag-to-scroll ── */
 const scroll = document.getElementById('scroll');
 let drag = false, sx = 0, sl = 0, moved = false;
 
@@ -591,7 +605,6 @@ scroll.addEventListener('mousemove', e => {
   if (Math.abs(e.pageX - sx) > 4) moved = true;
   if (moved) { e.preventDefault(); scroll.scrollLeft = sl - (e.pageX - sx); }
 });
-// Capture-phase: eat the click event after a drag so it doesn't open/close panels
 scroll.addEventListener('click', e => { if (moved) e.stopPropagation(); }, true);
 </script>
 
