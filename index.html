@@ -337,7 +337,12 @@
 
     @media (max-width: 768px) {
       .page { padding: 24px 20px 14px; }
-      .page::before { width: 620px; height: 620px; top: -390px; }
+      /* мобильный: свечение статичное сверху, как было */
+      .page::before {
+        width: 620px; height: 620px;
+        top: -390px; left: 50%;
+        transform: translateX(-50%);
+      }
       header { flex-direction: column; }
       .wm-head { width: 280px; height: 84px; margin-top: 10px; }
 
