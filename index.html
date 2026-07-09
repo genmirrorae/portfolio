@@ -3,18 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Пронин Роман</title>
+  <meta name="theme-color" content="#0B0B0D">
+  <title>Роман Пронин</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;500;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     html, body { height: 100%; overflow: hidden; }
 
+    :root {
+      --blackout: #0B0B0D;
+      --panel: #131316;
+      --line: #26262C;
+      --bone: #F2EEE6;
+      --smoke: #8B8B94;
+      --k3200: #FF9E2C;
+      --k3200-hi: #FFD9A0;
+      --k5600: #7FB4FF;
+      --gel-magenta: #FF4FA3;
+      --gel-green: #5BE38A;
+      --gel-uv: #9B6BFF;
+      --display: 'Unbounded', 'Arial Black', sans-serif;
+      --body: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+    }
+
     body {
       display: flex;
       flex-direction: column;
-      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
-      background: #fff;
-      color: #0d0d0d;
+      font-family: var(--body);
+      background: var(--blackout);
+      color: var(--bone);
     }
 
     /* ── Page grid ── */
@@ -24,19 +44,35 @@
       display: grid;
       grid-template-rows: auto 1fr auto;
       padding: 44px 64px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    /* луч 3200K сверху — темнота, в которой включается свет */
+    .page::before {
+      content: '';
+      position: absolute;
+      top: -560px; left: 50%;
+      transform: translateX(-50%);
+      width: 940px; height: 940px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,158,44,.16) 0%, rgba(255,158,44,.05) 45%, transparent 70%);
+      pointer-events: none;
     }
 
     .name {
-      font-size: clamp(26px, 4vw, 44px);
+      font-family: var(--display);
+      font-size: clamp(24px, 3.6vw, 40px);
       font-weight: 300;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.01em;
     }
     .role {
-      margin-top: 10px;
+      margin-top: 12px;
+      font-family: var(--display);
+      font-weight: 300;
       font-size: 10px;
-      letter-spacing: 0.22em;
+      letter-spacing: 0.35em;
       text-transform: uppercase;
-      color: #999;
+      color: var(--smoke);
     }
 
     /* ── Timeline scroll ── */
@@ -59,19 +95,19 @@
 
     .tl-seg {
       position: absolute; top: 50%;
-      height: 1px; background: #0d0d0d;
+      height: 1px; background: rgba(242,238,230,.45);
       transform: translateY(-50%);
     }
-    .tl-seg.gap { background: none; border-top: 1px dashed #ccc; }
+    .tl-seg.gap { background: none; border-top: 1px dashed #33333B; }
     .tl-seg.cap-l::before, .tl-seg.cap-r::after {
       content: ''; position: absolute;
-      top: -4px; width: 1px; height: 9px; background: #0d0d0d;
+      top: -4px; width: 1px; height: 9px; background: rgba(242,238,230,.45);
     }
     .tl-seg.cap-l::before { left: 0; }
     .tl-seg.cap-r::after  { right: 0; }
 
     .yr { position: absolute; top: calc(50% + 8px); transform: translateX(-50%); }
-    .yr span { font-size: 8px; letter-spacing: 0.12em; color: #ccc; }
+    .yr span { font-size: 8px; letter-spacing: 0.12em; color: #4A4A52; }
 
     /* ── Event ── */
     .ev {
@@ -86,22 +122,32 @@
     }
     .ev-upper { justify-content: flex-end; }
     .ev-lower { justify-content: flex-start; }
-    .ev-arm { width: 1px; height: 28px; background: #ddd; flex-shrink: 0; }
+    .ev-arm { width: 1px; height: 28px; background: #2E2E36; flex-shrink: 0; }
     .ev-info { text-align: center; }
     .ev-title { font-size: 11px; font-weight: 500; line-height: 1.45; white-space: pre-line; }
-    .ev-year  { font-size: 9px; color: #aaa; letter-spacing: 0.08em; margin-top: 3px; }
+    .ev-year  { font-size: 9px; color: var(--smoke); letter-spacing: 0.08em; margin-top: 3px; }
     .ev-tag {
       display: inline-block; font-size: 7.5px; letter-spacing: 0.12em;
-      text-transform: uppercase; border: 1px solid #e0e0e0; color: #c0c0c0;
+      text-transform: uppercase; border: 1px solid var(--line); color: var(--smoke);
       border-radius: 2px; padding: 1px 5px; margin-top: 4px;
     }
-    .ev-tag.milestone, .ev-tag.diploma, .ev-tag.exhibition { border-color: #0d0d0d; color: #0d0d0d; }
+    /* рубрики = источники света: один тип — один источник */
+    .ev-tag.project    { border-color: rgba(255,158,44,.5);  color: var(--k3200); }
+    .ev-tag.exhibition { border-color: rgba(127,180,255,.5); color: var(--k5600); }
+    .ev-tag.art        { border-color: rgba(255,79,163,.5);  color: var(--gel-magenta); }
+    .ev-tag.diploma    { border-color: rgba(155,107,255,.5); color: var(--gel-uv); }
+    .ev-tag.milestone  { border-color: rgba(242,238,230,.5); color: var(--bone); }
 
     .ev-dot {
       width: 7px; height: 7px; border-radius: 50%;
-      background: #0d0d0d; flex-shrink: 0;
+      background: var(--bone); flex-shrink: 0;
       transition: transform 0.2s ease;
     }
+    .ev.t-project .ev-dot    { background: var(--k3200);       box-shadow: 0 0 12px 2px rgba(255,158,44,.45); }
+    .ev.t-exhibition .ev-dot { background: var(--k5600);       box-shadow: 0 0 12px 2px rgba(127,180,255,.4); }
+    .ev.t-art .ev-dot        { background: var(--gel-magenta); box-shadow: 0 0 12px 2px rgba(255,79,163,.4); }
+    .ev.t-diploma .ev-dot    { background: var(--gel-uv);      box-shadow: 0 0 12px 2px rgba(155,107,255,.45); }
+    .ev.t-milestone .ev-dot  { background: var(--bone);        box-shadow: 0 0 10px 2px rgba(242,238,230,.35); }
     .ev:hover .ev-dot { transform: scale(2.4); }
     .ev.diploma .ev-dot { width: 9px; height: 9px; }
     .ev.diploma:hover .ev-dot { transform: scale(2.2); }
@@ -109,12 +155,23 @@
     .ev.has-media:hover .ev-title {
       text-decoration: underline;
       text-underline-offset: 3px;
-      text-decoration-color: #bbb;
+      text-decoration-color: #55555E;
     }
 
     footer {
-      display: flex; justify-content: space-between;
-      font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: #d0d0d0;
+      display: flex; justify-content: space-between; align-items: baseline;
+      font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: #55555E;
+    }
+    .wm { font-family: var(--display); font-weight: 300; font-size: 11px; text-transform: none; letter-spacing: 0.02em; color: var(--smoke); text-decoration: none; transition: color 0.15s; }
+    .wm b { font-weight: 800; color: var(--k3200); }
+    .wm:hover { color: var(--bone); }
+
+    header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .wm-head { display: block; width: 440px; height: 130px; cursor: pointer; }
+    .wm-head canvas {
+      width: 100%; height: 100%; display: block;
+      -webkit-mask-image: radial-gradient(ellipse 95% 90% at 50% 50%, #000 45%, transparent 96%);
+              mask-image: radial-gradient(ellipse 95% 90% at 50% 50%, #000 45%, transparent 96%);
     }
 
     /* ── Panel (in-flow, grows from bottom) ── */
@@ -128,8 +185,9 @@
     }
     #panel-wrap.open {
       height: 435px;
-      border-top-color: #e8e8e8;
+      border-top-color: var(--line);
     }
+    #panel-wrap { background: #0D0D10; }
 
     .panel { padding: 18px 64px; }
 
@@ -137,33 +195,40 @@
       display: flex; align-items: flex-start; justify-content: space-between;
     }
     .panel-title {
-      font-size: 16px; font-weight: 300;
-      letter-spacing: -0.01em; white-space: pre-line; line-height: 1.2;
+      font-family: var(--display);
+      font-size: 16px; font-weight: 500;
+      letter-spacing: 0; white-space: nowrap; line-height: 1.2;
     }
     .panel-meta {
-      font-size: 9px; letter-spacing: 0.18em;
-      text-transform: uppercase; color: #999; margin-top: 3px;
+      font-family: var(--display); font-weight: 300;
+      font-size: 9px; letter-spacing: 0.3em;
+      text-transform: uppercase; color: var(--smoke); margin-top: 6px;
     }
     .panel-close {
       background: none; border: none; font-size: 20px;
-      color: #bbb; cursor: pointer; line-height: 1;
+      color: var(--smoke); cursor: pointer; line-height: 1;
       padding: 0 0 0 20px; flex-shrink: 0; transition: color 0.15s;
     }
-    .panel-close:hover { color: #0d0d0d; }
+    .panel-close:hover { color: var(--bone); }
+
+    /* ── Panel body: text left, media right ── */
+    .panel-body {
+      display: flex; gap: 28px;
+      margin-top: 10px; height: 330px;
+    }
 
     .panel-desc {
-      margin-top: 6px;
-      font-size: 11px; line-height: 1.5; color: #555;
-      columns: 2; column-gap: 32px;
-      max-height: calc(5 * 11px * 1.5);
+      width: 360px; flex-shrink: 0;
+      font-size: 13px; line-height: 1.6; color: #C9C5BD;
       overflow-y: auto; scrollbar-width: none;
     }
     .panel-desc::-webkit-scrollbar { display: none; }
 
     /* ── Media strip ── */
     .panel-strip {
+      flex: 1; min-width: 0;
       display: flex; gap: 10px;
-      margin-top: 8px; height: 265px;
+      height: 100%;
       overflow-x: auto; scrollbar-width: none;
     }
     .panel-strip::-webkit-scrollbar { display: none; }
@@ -171,7 +236,7 @@
     .panel-strip img {
       height: 100%; width: auto;
       object-fit: cover; flex-shrink: 0;
-      display: block; background: #f0f0f0;
+      display: block; background: #101014;
       cursor: zoom-in;
       transition: opacity 0.15s;
     }
@@ -229,24 +294,72 @@
     }
     #lb-counter[hidden] { display: none; }
 
-    /* ── Mobile responsive ── */
-    @media (max-width: 768px) {
-      .page { padding: 28px 20px 16px; }
-      .panel { padding: 14px 20px; }
-      .panel-desc { columns: 1; }
-      #panel-wrap.open { height: 380px; }
-      .panel-strip { height: 200px; }
-      .tl-scroll.raised { transform: translateY(-12px); }
+    /* ── Мобильный вертикальный таймлайн ── */
+    .m-tl {
+      display: none;
+      overflow-y: auto; min-height: 0;
+      padding: 12px 0 12px 6px;
+      scrollbar-width: none;
+    }
+    .m-tl::-webkit-scrollbar { display: none; }
+    .m-track { border-left: 1px solid rgba(242,238,230,.35); margin-left: 4px; padding: 6px 0; }
+    .m-ev { position: relative; padding: 13px 8px 13px 24px; }
+    .m-dot {
+      position: absolute; left: -4.5px; top: 17px;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--bone);
+    }
+    .m-ev.t-project .m-dot    { background: var(--k3200);       box-shadow: 0 0 10px 2px rgba(255,158,44,.45); }
+    .m-ev.t-exhibition .m-dot { background: var(--k5600);       box-shadow: 0 0 10px 2px rgba(127,180,255,.4); }
+    .m-ev.t-art .m-dot        { background: var(--gel-magenta); box-shadow: 0 0 10px 2px rgba(255,79,163,.4); }
+    .m-ev.t-diploma .m-dot    { background: var(--gel-uv);      box-shadow: 0 0 10px 2px rgba(155,107,255,.45); }
+    .m-ev.t-milestone .m-dot  { background: var(--bone);        box-shadow: 0 0 8px 2px rgba(242,238,230,.35); }
+    .m-title { font-size: 14px; font-weight: 500; line-height: 1.35; }
+    .m-meta  { font-size: 10px; color: var(--smoke); margin-top: 3px; letter-spacing: 0.08em; text-transform: uppercase; }
+    .m-tag.project    { color: var(--k3200); }
+    .m-tag.exhibition { color: var(--k5600); }
+    .m-tag.art        { color: var(--gel-magenta); }
+    .m-tag.diploma    { color: var(--gel-uv); }
+    .m-tag.milestone  { color: var(--bone); }
+
+    .sheet-handle {
+      display: none;
+      width: 42px; height: 4px; border-radius: 2px;
+      background: #33333B; margin: 4px auto 14px;
     }
 
-    @media (max-width: 480px) {
-      .page { padding: 20px 16px 12px; }
-      .panel { padding: 12px 16px; }
-      #panel-wrap.open { height: 320px; }
-      .panel-strip { height: 160px; }
-      .panel-title { font-size: 14px; }
-      .tl-scroll { min-height: 220px; }
-      .tl-scroll.raised { transform: translateY(-8px); }
+    @media (max-width: 768px) {
+      .page { padding: 24px 20px 14px; }
+      .page::before { width: 620px; height: 620px; top: -390px; }
+      header { flex-direction: column; }
+      .wm-head { width: 280px; height: 84px; margin-top: 10px; }
+
+      .tl-scroll { display: none; }
+      .m-tl { display: block; }
+
+      /* шторка снизу */
+      #panel-wrap {
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 200;
+        height: 85vh; height: 85dvh;
+        transform: translateY(103%);
+        transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid var(--line); border-bottom: none;
+        border-radius: 20px 20px 0 0;
+        overflow: hidden;
+        box-shadow: 0 -20px 60px rgba(0,0,0,.55);
+      }
+      #panel-wrap.open {
+        height: 85vh; height: 85dvh;
+        transform: translateY(0);
+      }
+      .panel { padding: 10px 20px 30px; height: 100%; overflow-y: auto; }
+      .sheet-handle { display: block; }
+      .panel-title { white-space: normal; }
+      .panel-body { flex-direction: column; height: auto; margin-top: 12px; }
+      .panel-desc { width: 100%; overflow-y: visible; }
+      .panel-strip { flex-direction: column; height: auto; margin-top: 16px; overflow-x: visible; }
+      .panel-strip img { width: 100%; height: auto; }
+      .panel-strip video { width: 100%; max-width: 100%; height: auto; }
     }
   </style>
 </head>
@@ -254,22 +367,28 @@
 
 <div class="page">
   <header>
-    <div class="name">Пронин Роман</div>
-    <div class="role">Креативный продюсер</div>
+    <div>
+      <div class="name">Роман Пронин</div>
+      <div class="role">Креативный продюсер</div>
+    </div>
+    <a class="wm-head" href="https://instagram.com/roman_pro" target="_blank" rel="noopener" aria-label="Instagram @roman_pro"><canvas id="wm-canvas"></canvas></a>
   </header>
 
   <div class="tl-scroll" id="scroll">
     <div class="tl-track" id="track"></div>
   </div>
 
+  <div class="m-tl"><div class="m-track" id="mtrack"></div></div>
+
   <footer>
     <span id="range"></span>
-    <span>Portfolio</span>
+    <a class="wm" href="https://instagram.com/roman_pro" target="_blank" rel="noopener">roman<b>_pro</b></a>
   </footer>
 </div>
 
 <div id="panel-wrap">
   <div class="panel">
+    <div class="sheet-handle"></div>
     <div class="panel-head">
       <div>
         <div class="panel-title" id="panel-title"></div>
@@ -277,8 +396,10 @@
       </div>
       <button class="panel-close" id="panel-close">×</button>
     </div>
-    <div class="panel-desc" id="panel-desc"></div>
-    <div class="panel-strip" id="panel-strip"></div>
+    <div class="panel-body">
+      <div class="panel-desc" id="panel-desc"></div>
+      <div class="panel-strip" id="panel-strip"></div>
+    </div>
   </div>
 </div>
 
@@ -297,17 +418,18 @@ const COMPRESS = 120;
 const PAD      = 80;
 
 const EVENTS = [
-  { year: 2023, month:  9, title: "Магистратура ArtTech",
+  { year: 2023, month:  9, yearLabel: "2023–2025", title: "Магистратура ArtTech",
     type: "milestone",
-    desc: "В 2023 году поступил в магистратуру ArtTech «Технологическое искусство» — программу на стыке современного искусства и технологий. За два года обучения реализовал 8 авторских арт-проектов, участвовал в групповых выставках в галерее Краснохолмская и культурном центре ДК ЗИЛ." },
+    desc: "В 2023 году поступил в магистратуру ArtTech «Технологическое искусство» — программу на стыке современного искусства и технологий. За два года обучения реализовал 8 авторских арт-проектов, участвовал в групповых выставках в галерее Краснохолмская и культурном центре ДК ЗИЛ.",
+    photos: ["photos/arttech/1.jpg"],
+    videos: ["videos/arttech/1.mp4","videos/arttech/2.mp4"] },
 
   { year: 2025, month:  2, title: "Классика",
     type: "project",
     desc: "Руководил направлением света и медиа-арта в арт-группе «Классика» на протяжении четырёх проектов. Каждый раз с нуля строили полноценную концертную площадку в непредназначенных для этого пространствах: кинозал детского лагеря, спортивный зал, дважды — открытое поле на фестивалях. Проектировал световое решение, собирал и монтировал оборудование, управлял командой на площадке.",
     photos: ["photos/klassika/1.jpg","photos/klassika/2.jpg","photos/klassika/3.jpg",
              "photos/klassika/4.jpg","photos/klassika/5.jpg"],
-    videos: ["videos/klassika/1.mp4","videos/klassika/2.mp4","videos/klassika/3.mp4",
-             "videos/klassika/4.mp4","videos/klassika/5.mp4","videos/klassika/6.mp4"] },
+    videos: ["videos/klassika/1.mp4","videos/klassika/2.mp4","videos/klassika/3.mp4"] },
 
   { year: 2025, month:  5, title: "АрхМосква'25",
     type: "project",
@@ -365,12 +487,13 @@ const EVENTS = [
   { year: 2025, month: 10, title: "МАРС —\nСон в музее",
     type: "exhibition",
     desc: "Руководил полным техническим обеспечением выставки «Сон в музее» в центре Марс. В зоне ответственности — три направления: свет (галерейное освещение и подсветка картин), звук (13 независимых аудиозон на отдельных каналах) и мультимедиа (11 проекторов, из них 4 сшитых на пол и 2 на стену). Центральный элемент экспозиции — интерактивная нейросетевая инсталляция, визуализирующая сны посетителей в реальном времени.",
-    photos: ["photos/mars/1.jpg","photos/mars/2.jpg",
-             "photos/mars/3.jpg","photos/mars/4.jpg"],
+    photos: ["photos/mars/1.jpg","photos/mars/2.jpg"],
     videos: ["videos/mars/1.mp4","videos/mars/2.mp4",
-             "videos/mars/3.mp4","videos/mars/4.mp4"] },
+             "videos/mars/3.mp4","videos/mars/4.mp4",
+             "videos/mars/5.mp4","videos/mars/6.mp4",
+             "videos/mars/7.mp4","videos/mars/8.mp4"] },
 
-  { year: 2025, month: 11, title: "ЦИПР",
+  { year: 2025, month: 11, title: "Форум цифровые\nрешения",
     type: "exhibition",
     desc: "Разработали интерактивную инсталляцию «Под защитой» для стенда компании Solar на конференции ЦИПР. Посетитель подходил к камере и получал два снимка: исходное фото и версию с наложенной 3D-сеткой — визуальной метафорой защиты. Инсталляция переводила сложный продуктовый концепт в понятный и запоминающийся пользовательский опыт.",
     photos: ["photos/tsipr/1.jpg"],
@@ -455,12 +578,12 @@ EVENTS.forEach((ev, i) => {
 
   const info = `<div class="ev-info">
     <div class="ev-title">${ev.title}</div>
-    <div class="ev-year">${ev.year}</div>
+    <div class="ev-year">${ev.yearLabel || ev.year}</div>
     <span class="ev-tag ${ev.type}">${TAG[ev.type]}</span>
   </div>`;
 
   const node = document.createElement('div');
-  let cls = 'ev';
+  let cls = 'ev t-' + ev.type;
   if (ev.type === 'diploma') cls += ' diploma';
   if (hasContent)            cls += ' has-media';
   node.className  = cls;
@@ -473,11 +596,24 @@ EVENTS.forEach((ev, i) => {
 
   if (hasContent) {
     node.addEventListener('click', e => {
-      e.stopPropagation();
+      e.stopPropagation(); // don't bubble to the close-on-click listener
       openPanel(ev);
     });
   }
   track.appendChild(node);
+});
+
+/* ── Мобильный вертикальный таймлайн ── */
+const mtrack = document.getElementById('mtrack');
+EVENTS.forEach(ev => {
+  const hasContent = ((ev.photos && ev.photos.length) || (ev.videos && ev.videos.length)) || !!ev.desc;
+  const el = document.createElement('div');
+  el.className = 'm-ev t-' + ev.type;
+  el.innerHTML = `<div class="m-dot"></div>
+    <div class="m-title">${ev.title.replace(/\n/g, ' ')}</div>
+    <div class="m-meta">${ev.yearLabel || ev.year} · <span class="m-tag ${ev.type}">${TAG[ev.type]}</span></div>`;
+  if (hasContent) el.addEventListener('click', e => { e.stopPropagation(); openPanel(ev); });
+  mtrack.appendChild(el);
 });
 
 /* ── Footer ── */
@@ -491,7 +627,7 @@ let   panelOpen = false;
 
 function openPanel(ev) {
   document.getElementById('panel-title').textContent = ev.title;
-  document.getElementById('panel-meta').textContent  = `${ev.year}  ·  ${TAG[ev.type]}`;
+  document.getElementById('panel-meta').textContent  = `${ev.yearLabel || ev.year}  ·  ${TAG[ev.type]}`;
   document.getElementById('panel-desc').textContent  = ev.desc || '';
 
   const strip = document.getElementById('panel-strip');
@@ -529,17 +665,57 @@ function openPanel(ev) {
 function closePanel() {
   if (!panelOpen) return;
   panelWrap.classList.remove('open');
+  panelWrap.style.transform = '';
   tlScroll.classList.remove('raised');
   panelOpen = false;
   document.querySelectorAll('#panel-strip video').forEach(v => { v.pause(); v.src = ''; v.load(); });
 }
+
+/* ── Свайп вниз закрывает шторку (мобильный) ── */
+(function () {
+  const panelEl = document.querySelector('.panel');
+  const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
+  let startY = null, dy = 0, dragging = false;
+
+  panelEl.addEventListener('touchstart', e => {
+    if (!isMobile() || !panelOpen) return;
+    startY = e.touches[0].clientY;
+    dy = 0; dragging = false;
+  }, { passive: true });
+
+  panelEl.addEventListener('touchmove', e => {
+    if (startY === null || !isMobile() || !panelOpen) return;
+    dy = e.touches[0].clientY - startY;
+    if (panelEl.scrollTop <= 0 && dy > 0) {
+      dragging = true;
+      panelWrap.style.transition = 'none';
+      panelWrap.style.transform = `translateY(${dy}px)`;
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  panelEl.addEventListener('touchend', () => {
+    if (startY === null) return;
+    panelWrap.style.transition = '';
+    if (dragging && dy > 90) {
+      panelWrap.style.transform = '';
+      closePanel();
+    } else {
+      panelWrap.style.transform = '';
+    }
+    startY = null; dragging = false;
+  });
+})();
 
 document.getElementById('panel-close').addEventListener('click', e => {
   e.stopPropagation();
   closePanel();
 });
 
+// Close panel on click anywhere outside panel and outside event dots
 document.addEventListener('click', () => closePanel());
+
+// Stop clicks inside panel from bubbling to the document listener
 panelWrap.addEventListener('click', e => e.stopPropagation());
 
 /* ── Lightbox ── */
@@ -569,13 +745,16 @@ function openLightbox(photos, index) {
 
 function closeLightbox() {
   lightbox.classList.remove('open');
+  // panel stays open — don't call closePanel()
 }
 
+// Click on dark backdrop → close lightbox only
 lightbox.addEventListener('click', e => {
-  e.stopPropagation();
+  e.stopPropagation(); // prevent document listener → panel stays open
   closeLightbox();
 });
 
+// Clicks on image/buttons don't close the lightbox
 lbImg.addEventListener('click',     e => e.stopPropagation());
 lbPrev.addEventListener('click',    e => { e.stopPropagation(); lbIndex = (lbIndex - 1 + lbPhotos.length) % lbPhotos.length; updateLightbox(); });
 lbNext.addEventListener('click',    e => { e.stopPropagation(); lbIndex = (lbIndex + 1) % lbPhotos.length; updateLightbox(); });
@@ -592,7 +771,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closePanel();
 });
 
-/* ── Drag-to-scroll ── */
+/* ── Drag-to-scroll (suppresses click after drag) ── */
 const scroll = document.getElementById('scroll');
 let drag = false, sx = 0, sl = 0, moved = false;
 
@@ -605,7 +784,140 @@ scroll.addEventListener('mousemove', e => {
   if (Math.abs(e.pageX - sx) > 4) moved = true;
   if (moved) { e.preventDefault(); scroll.scrollLeft = sl - (e.pageX - sx); }
 });
+// Capture-phase: eat the click event after a drag so it doesn't open/close panels
 scroll.addEventListener('click', e => { if (moved) e.stopPropagation(); }, true);
+
+/* ── Вордмарк roman_pro: текст из вертикальных линий, разбегающихся от курсора ── */
+(function () {
+  const cv  = document.getElementById('wm-canvas');
+  const c   = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+
+  const CSS_W = 440, CSS_H = 130;
+  const W = CSS_W * dpr, H = CSS_H * dpr;
+  cv.width = W; cv.height = H;
+
+  const FONT_SIZE   = 56 * dpr;
+  const SPACING     = 4 * dpr;      // шаг вертикальных линий
+  const BASE_W      = 0.35 * dpr;   // тонкая линия
+  const MED_W       = 1.6 * dpr;    // зона overshoot
+  const THICK_W     = 3.2 * dpr;    // внутри буквы
+  const OVERSHOOT   = 9 * dpr;
+  const REPEL_STR   = 11 * dpr;
+  const REPEL_RAD   = 75 * dpr;
+  const EASE        = 0.12;
+  const SAMPLE      = 2;
+  const BONE        = '#F2EEE6';
+  const TUNGSTEN    = '#FF9E2C';
+
+  const off    = document.createElement('canvas');
+  off.width = W; off.height = H;
+  const offCtx = off.getContext('2d', { willReadFrequently: true });
+
+  let textData = null, boundaryX = W / 2;
+  let mouseX = -9e4, mouseActive = false;
+  let disp = [], animId = null;
+
+  function raster() {
+    offCtx.clearRect(0, 0, W, H);
+    offCtx.fillStyle = 'white';
+    offCtx.textBaseline = 'middle';
+    const bold = `800 ${FONT_SIZE * 0.82}px Unbounded`;
+    offCtx.font = bold;
+    const w1 = offCtx.measureText('roman').width;
+    const w2 = offCtx.measureText('_pro').width;
+    const startX = (W - (w1 + w2)) / 2, midY = H / 2;
+    offCtx.fillText('roman', startX, midY);
+    offCtx.fillText('_pro', startX + w1, midY);
+    boundaryX = startX + w1;
+    textData = offCtx.getImageData(0, 0, W, H).data;
+  }
+
+  function draw() {
+    if (!textData) raster();
+    c.clearRect(0, 0, W, H);
+
+    const numLines = Math.floor(W / SPACING);
+    const offsetX  = Math.floor((W - numLines * SPACING) / 2);
+    const rows     = Math.ceil(H / SAMPLE);
+    const osRows   = Math.ceil(OVERSHOOT / SAMPLE);
+    if (disp.length !== numLines) disp = new Array(numLines).fill(0);
+
+    c.lineCap = 'round';
+    let anyMoving = false;
+
+    for (let i = 0; i < numLines; i++) {
+      const baseX = offsetX + i * SPACING + Math.floor(SPACING / 2);
+      let target = 0;
+      if (mouseActive) {
+        const dx = baseX - mouseX, adx = Math.abs(dx);
+        if (adx < REPEL_RAD) {
+          const t = 1 - adx / REPEL_RAD, e = t * t * (3 - 2 * t);
+          target = (dx >= 0 ? 1 : -1) * REPEL_STR * e;
+        }
+      }
+      disp[i] += (target - disp[i]) * EASE;
+      if (Math.abs(disp[i]) < 0.05 && target === 0) disp[i] = 0; else anyMoving = true;
+
+      const x = baseX + disp[i];
+      const sx = Math.min(Math.max(baseX, 0), W - 1);
+      c.strokeStyle = baseX < boundaryX ? BONE : TUNGSTEN;
+
+      const line = (y1, y2, lw) => {
+        if (y2 - y1 <= 0) return;
+        c.lineWidth = lw; c.beginPath();
+        c.moveTo(x + 0.5, y1); c.lineTo(x + 0.5, y2); c.stroke();
+      };
+
+      // строки, где есть текст / плотный текст
+      const regions = [], thicks = [];
+      let inR = false, inT = false, rs = 0, ts = 0;
+      for (let j = 0; j < rows; j++) {
+        const sy = Math.min(j * SAMPLE, H - 1);
+        const a = textData[(sy * W + sx) * 4 + 3] / 255;
+        if (a > 0.05) { if (!inR) { inR = true; rs = j; } }
+        else if (inR) { inR = false; regions.push([rs, j - 1]); }
+        if (a > 0.4)  { if (!inT) { inT = true; ts = j; } }
+        else if (inT) { inT = false; thicks.push([ts, j - 1]); }
+      }
+      if (inR) regions.push([rs, rows - 1]);
+      if (inT) thicks.push([ts, rows - 1]);
+
+      line(0, H, BASE_W);
+      for (const [a, b] of regions)
+        line(Math.max(0, a - osRows) * SAMPLE, Math.min((b + osRows) * SAMPLE, H), MED_W);
+      for (const [a, b] of thicks)
+        line(a * SAMPLE, Math.min(b * SAMPLE, H), THICK_W);
+    }
+
+    animId = (anyMoving || mouseActive) ? requestAnimationFrame(draw) : null;
+  }
+
+  cv.addEventListener('mousemove', e => {
+    const r = cv.getBoundingClientRect();
+    mouseX = (e.clientX - r.left) * (W / r.width);
+    mouseActive = true;
+    if (!animId) animId = requestAnimationFrame(draw);
+  }, { passive: true });
+  cv.addEventListener('mouseleave', () => {
+    mouseActive = false;
+    if (!animId) animId = requestAnimationFrame(draw);
+  });
+  cv.addEventListener('touchmove', e => {
+    const r = cv.getBoundingClientRect();
+    mouseX = (e.touches[0].clientX - r.left) * (W / r.width);
+    mouseActive = true;
+    if (!animId) animId = requestAnimationFrame(draw);
+  }, { passive: true });
+  cv.addEventListener('touchend', () => {
+    mouseActive = false;
+    if (!animId) animId = requestAnimationFrame(draw);
+  });
+
+  // дорисовать после загрузки Unbounded
+  draw();
+  if (document.fonts) document.fonts.ready.then(() => { textData = null; draw(); });
+})();
 </script>
 
 </body>
