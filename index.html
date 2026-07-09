@@ -877,7 +877,7 @@ scroll.addEventListener('click', e => { if (moved) e.stopPropagation(); }, true)
     const startX = (W - (w1 + w2)) / 2, midY = H / 2;
     offCtx.fillText('roman', startX, midY);
     offCtx.fillText('_pro', startX + w1, midY);
-    boundaryX = startX + w1;
+    boundaryX = startX + offCtx.measureText('roman_').width; // «_» ещё белый, оранжевый с «pro»
     textData = offCtx.getImageData(0, 0, W, H).data;
   }
 
