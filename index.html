@@ -337,11 +337,10 @@
 
     @media (max-width: 768px) {
       .page { padding: 24px 20px 14px; }
-      /* мобильный: свечение статичное сверху, как было */
+      /* мобильный: меньше круг, до первого касания висит сверху как раньше */
       .page::before {
         width: 620px; height: 620px;
-        top: -390px; left: 50%;
-        transform: translateX(-50%);
+        top: var(--gy, -80px);
       }
       header { flex-direction: column; }
       .wm-head { width: 280px; height: 84px; margin-top: 10px; }
@@ -819,16 +818,21 @@ scroll.addEventListener('click', e => { if (moved) e.stopPropagation(); }, true)
     }
   }
 
-  document.addEventListener('mousemove', e => {
+  function follow(clientX, clientY, offsetY) {
     const r = page.getBoundingClientRect();
-    tx = e.clientX - r.left;
-    ty = e.clientY - r.top;
+    tx = clientX - r.left;
+    ty = clientY - r.top + offsetY;
     if (cx === null) {               // старт из исходной точки сверху по центру
       cx = r.width / 2;
       cy = -90;
     }
     if (!glowId) glowId = requestAnimationFrame(step);
-  }, { passive: true });
+  }
+
+  document.addEventListener('mousemove', e => follow(e.clientX, e.clientY, 0), { passive: true });
+  // на таче свет чуть выше пальца, чтобы его было видно
+  document.addEventListener('touchmove', e => follow(e.touches[0].clientX, e.touches[0].clientY, -70), { passive: true });
+  document.addEventListener('touchstart', e => follow(e.touches[0].clientX, e.touches[0].clientY, -70), { passive: true });
 })();
 
 /* ── Вордмарк roman_pro: текст из вертикальных линий, разбегающихся от курсора ── */
