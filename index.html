@@ -47,15 +47,15 @@
       position: relative;
       overflow: hidden;
     }
-    /* луч 3200K сверху — темнота, в которой включается свет */
+    /* луч 3200K — темнота, в которой включается свет; плавно следует за курсором */
     .page::before {
       content: '';
       position: absolute;
-      top: -560px; left: 50%;
-      transform: translateX(-50%);
+      top: var(--gy, -90px); left: var(--gx, 50%);
+      transform: translate(-50%, -50%);
       width: 940px; height: 940px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,158,44,.16) 0%, rgba(255,158,44,.05) 45%, transparent 70%);
+      background: radial-gradient(circle, rgba(255,158,44,.26) 0%, rgba(255,158,44,.08) 45%, transparent 70%);
       pointer-events: none;
     }
 
@@ -793,6 +793,38 @@ scroll.addEventListener('mousemove', e => {
 });
 // Capture-phase: eat the click event after a drag so it doesn't open/close panels
 scroll.addEventListener('click', e => { if (moved) e.stopPropagation(); }, true);
+
+/* ── Луч 3200K плавно следует за курсором ── */
+(function () {
+  const page = document.querySelector('.page');
+  let tx = null, ty = null;          // цель (курсор)
+  let cx = null, cy = null;          // текущая позиция луча
+  let glowId = null;
+  const LAG = 0.035;                 // меньше — плавнее/ленивее
+
+  function step() {
+    cx += (tx - cx) * LAG;
+    cy += (ty - cy) * LAG;
+    page.style.setProperty('--gx', cx + 'px');
+    page.style.setProperty('--gy', cy + 'px');
+    if (Math.abs(tx - cx) > 0.5 || Math.abs(ty - cy) > 0.5) {
+      glowId = requestAnimationFrame(step);
+    } else {
+      glowId = null;
+    }
+  }
+
+  document.addEventListener('mousemove', e => {
+    const r = page.getBoundingClientRect();
+    tx = e.clientX - r.left;
+    ty = e.clientY - r.top;
+    if (cx === null) {               // старт из исходной точки сверху по центру
+      cx = r.width / 2;
+      cy = -90;
+    }
+    if (!glowId) glowId = requestAnimationFrame(step);
+  }, { passive: true });
+})();
 
 /* ── Вордмарк roman_pro: текст из вертикальных линий, разбегающихся от курсора ── */
 (function () {
