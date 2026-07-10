@@ -321,6 +321,8 @@
     .m-tag.art        { color: var(--gel-magenta); }
     .m-tag.diploma    { color: var(--gel-uv); }
     .m-tag.milestone  { color: var(--bone); }
+    .m-ev.has-content { cursor: pointer; }
+    .m-ev.has-content:active { background: rgba(255,255,255,.04); border-radius: 6px; }
 
     .sheet-handle {
       display: none;
@@ -623,7 +625,10 @@ EVENTS.forEach(ev => {
   el.innerHTML = `<div class="m-dot"></div>
     <div class="m-title">${ev.title.replace(/\n/g, ' ')}</div>
     <div class="m-meta">${ev.yearLabel || ev.year} · <span class="m-tag ${ev.type}">${TAG[ev.type]}</span></div>`;
-  if (hasContent) el.addEventListener('click', e => { e.stopPropagation(); openPanel(ev); });
+  if (hasContent) {
+    el.classList.add('has-content');
+    el.addEventListener('click', e => { e.stopPropagation(); openPanel(ev); });
+  }
   mtrack.appendChild(el);
 });
 
