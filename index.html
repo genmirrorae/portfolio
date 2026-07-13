@@ -867,7 +867,6 @@ scroll.addEventListener('click', e => { if (moved) e.stopPropagation(); }, true)
   const SAMPLE      = 2;
   const BONE        = '#F2EEE6';
   const TUNGSTEN    = '#FF9E2C';
-  const TUNGSTEN_HI = '#FFD9A0';
 
   const off    = document.createElement('canvas');
   off.width = W; off.height = H;
@@ -941,19 +940,15 @@ scroll.addEventListener('click', e => { if (moved) e.stopPropagation(); }, true)
       if (inR) regions.push([rs, rows - 1]);
       if (inT) thicks.push([ts, rows - 1]);
 
-      // шлейф: затухающие тёплые копии среза буквы между старым и новым местом
+      // шлейф: буква сплошным своим цветом растягивается от старого места к новому
       const dmag = Math.abs(disp[i]);
       if (dmag > 1.2 * dpr && thicks.length) {
-        const fade = Math.min(dmag / REPEL_STR, 1);
-        for (let g = GHOSTS; g >= 1; g--) {
-          const k = g / (GHOSTS + 1);            // k→1 у старого места, k→0 у буквы
-          const gx = baseX + disp[i] * (1 - k);
-          c.globalAlpha = fade * 0.55 * (1 - k);
-          c.strokeStyle = g === 1 ? TUNGSTEN_HI : TUNGSTEN;
+        c.strokeStyle = baseX < boundaryX ? BONE : TUNGSTEN;
+        for (let g = 0; g <= GHOSTS; g++) {
+          const gx = baseX + disp[i] * (g / (GHOSTS + 1));
           for (const [a, b] of thicks)
-            line(a * SAMPLE, Math.min(b * SAMPLE, H), THICK_W * (1 - 0.45 * k), gx);
+            line(a * SAMPLE, Math.min(b * SAMPLE, H), THICK_W, gx);
         }
-        c.globalAlpha = 1;
       }
 
       c.strokeStyle = baseX < boundaryX ? BONE : TUNGSTEN;
