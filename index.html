@@ -862,8 +862,7 @@ scroll.addEventListener('click', e => { if (moved) e.stopPropagation(); }, true)
   const REPEL_STR   = 16 * dpr;
   const REPEL_RAD   = 95 * dpr;
   const EASE        = 0.12;
-  const EASE_BACK   = 0.05;        // возврат медленнее — шлейф гаснет как послесвечение
-  const GHOSTS      = 5;           // копий среза в шлейфе
+  const EASE_BACK   = 0.05;        // возврат медленнее — растяжка схлопывается плавно
   const SAMPLE      = 2;
   const BONE        = '#F2EEE6';
   const TUNGSTEN    = '#FF9E2C';
@@ -920,10 +919,10 @@ scroll.addEventListener('click', e => { if (moved) e.stopPropagation(); }, true)
       const x = baseX + disp[i];
       const sx = Math.min(Math.max(baseX, 0), W - 1);
 
-      const line = (y1, y2, lw, lx = x) => {
+      const line = (y1, y2, lw) => {
         if (y2 - y1 <= 0) return;
         c.lineWidth = lw; c.beginPath();
-        c.moveTo(lx + 0.5, y1); c.lineTo(lx + 0.5, y2); c.stroke();
+        c.moveTo(x + 0.5, y1); c.lineTo(x + 0.5, y2); c.stroke();
       };
 
       // строки, где есть текст / плотный текст
@@ -940,23 +939,36 @@ scroll.addEventListener('click', e => { if (moved) e.stopPropagation(); }, true)
       if (inR) regions.push([rs, rows - 1]);
       if (inT) thicks.push([ts, rows - 1]);
 
-      // шлейф: буква сплошным своим цветом растягивается от старого места к новому
-      const dmag = Math.abs(disp[i]);
-      if (dmag > 1.2 * dpr && thicks.length) {
-        c.strokeStyle = baseX < boundaryX ? BONE : TUNGSTEN;
-        for (let g = 0; g <= GHOSTS; g++) {
-          const gx = baseX + disp[i] * (g / (GHOSTS + 1));
-          for (const [a, b] of thicks)
-            line(a * SAMPLE, Math.min(b * SAMPLE, H), THICK_W, gx);
-        }
-      }
-
       c.strokeStyle = baseX < boundaryX ? BONE : TUNGSTEN;
       line(0, H, BASE_W);
       for (const [a, b] of regions)
         line(Math.max(0, a - osRows) * SAMPLE, Math.min((b + osRows) * SAMPLE, H), MED_W);
       for (const [a, b] of thicks)
         line(a * SAMPLE, Math.min(b * SAMPLE, H), THICK_W);
+    }
+
+    // stretch fill: пиксели буквы, зажатые между соседними линиями,
+    // растягиваются сплошной заливкой вслед за разъездом линий
+    for (let i = 0; i < numLines - 1; i++) {
+      const bx1 = offsetX + i * SPACING + Math.floor(SPACING / 2);
+      const bx2 = bx1 + SPACING;
+      const x1 = bx1 + disp[i], x2 = bx2 + disp[i + 1];
+      const sx1 = Math.min(Math.max(bx1, 0), W - 1);
+      const sx2 = Math.min(Math.max(bx2, 0), W - 1);
+      c.fillStyle = bx1 < boundaryX ? BONE : TUNGSTEN;
+      let inF = false, fs = 0;
+      for (let j = 0; j <= rows; j++) {
+        const sy = Math.min(j * SAMPLE, H - 1);
+        const both = j < rows &&
+          textData[(sy * W + sx1) * 4 + 3] / 255 > 0.4 &&
+          textData[(sy * W + sx2) * 4 + 3] / 255 > 0.4;
+        if (both) { if (!inF) { inF = true; fs = j; } }
+        else if (inF) {
+          inF = false;
+          const left = x1 + THICK_W / 2, right = x2 - THICK_W / 2;
+          if (right > left) c.fillRect(left, fs * SAMPLE, right - left, (j - fs) * SAMPLE);
+        }
+      }
     }
 
     animId = (anyMoving || mouseActive) ? requestAnimationFrame(draw) : null;
