@@ -859,12 +859,15 @@ scroll.addEventListener('click', e => { if (moved) e.stopPropagation(); }, true)
   const MED_W       = 1.6 * dpr;    // зона overshoot
   const THICK_W     = 3.2 * dpr;    // внутри буквы
   const OVERSHOOT   = 9 * dpr;
-  const REPEL_STR   = 11 * dpr;
-  const REPEL_RAD   = 75 * dpr;
+  const REPEL_STR   = 16 * dpr;
+  const REPEL_RAD   = 95 * dpr;
   const EASE        = 0.12;
+  const EASE_BACK   = 0.05;        // возврат медленнее — шлейф гаснет как послесвечение
+  const GHOSTS      = 5;           // копий среза в шлейфе
   const SAMPLE      = 2;
   const BONE        = '#F2EEE6';
   const TUNGSTEN    = '#FF9E2C';
+  const TUNGSTEN_HI = '#FFD9A0';
 
   const off    = document.createElement('canvas');
   off.width = W; off.height = H;
@@ -912,17 +915,16 @@ scroll.addEventListener('click', e => { if (moved) e.stopPropagation(); }, true)
           target = (dx >= 0 ? 1 : -1) * REPEL_STR * e;
         }
       }
-      disp[i] += (target - disp[i]) * EASE;
+      disp[i] += (target - disp[i]) * (target === 0 ? EASE_BACK : EASE);
       if (Math.abs(disp[i]) < 0.05 && target === 0) disp[i] = 0; else anyMoving = true;
 
       const x = baseX + disp[i];
       const sx = Math.min(Math.max(baseX, 0), W - 1);
-      c.strokeStyle = baseX < boundaryX ? BONE : TUNGSTEN;
 
-      const line = (y1, y2, lw) => {
+      const line = (y1, y2, lw, lx = x) => {
         if (y2 - y1 <= 0) return;
         c.lineWidth = lw; c.beginPath();
-        c.moveTo(x + 0.5, y1); c.lineTo(x + 0.5, y2); c.stroke();
+        c.moveTo(lx + 0.5, y1); c.lineTo(lx + 0.5, y2); c.stroke();
       };
 
       // строки, где есть текст / плотный текст
@@ -939,6 +941,22 @@ scroll.addEventListener('click', e => { if (moved) e.stopPropagation(); }, true)
       if (inR) regions.push([rs, rows - 1]);
       if (inT) thicks.push([ts, rows - 1]);
 
+      // шлейф: затухающие тёплые копии среза буквы между старым и новым местом
+      const dmag = Math.abs(disp[i]);
+      if (dmag > 1.2 * dpr && thicks.length) {
+        const fade = Math.min(dmag / REPEL_STR, 1);
+        for (let g = GHOSTS; g >= 1; g--) {
+          const k = g / (GHOSTS + 1);            // k→1 у старого места, k→0 у буквы
+          const gx = baseX + disp[i] * (1 - k);
+          c.globalAlpha = fade * 0.55 * (1 - k);
+          c.strokeStyle = g === 1 ? TUNGSTEN_HI : TUNGSTEN;
+          for (const [a, b] of thicks)
+            line(a * SAMPLE, Math.min(b * SAMPLE, H), THICK_W * (1 - 0.45 * k), gx);
+        }
+        c.globalAlpha = 1;
+      }
+
+      c.strokeStyle = baseX < boundaryX ? BONE : TUNGSTEN;
       line(0, H, BASE_W);
       for (const [a, b] of regions)
         line(Math.max(0, a - osRows) * SAMPLE, Math.min((b + osRows) * SAMPLE, H), MED_W);
